@@ -1,4 +1,14 @@
 site_name: ADCS Documentation
+theme: readthedocs
 nav:
   - Home: index.md
+  - Magnetic Field Model: magnetic_field_model.md
   - Help: help.md
+plugins:
+  - search
+  - mermaid2
+extra_javascript: 
+    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+
+markdown_extensions:
+    - mdx_math
