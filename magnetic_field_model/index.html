@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Magnetic Field Model - ADCS Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Magnetic Field Model";
+        var mkdocs_page_input_path = "magnetic_field_model.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> ADCS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Magnetic Field Model</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#outline">Outline</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#resources">Resources</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#details">Details</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#calculating-legendre-polynomials">Calculating Legendre Polynomials</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../help/">Help</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">ADCS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Magnetic Field Model</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="magnetic-field-model">Magnetic Field Model</h1>
+<p>Owner: <a href="https://ssi-teams.slack.com/team/U07R0F0STPS">@Lundeen</a></p>
+<p><a href="https://github.com/stanford-ssi/samwise-adcs-flight/pull/36">Github pull request</a></p>
+<h2 id="outline">Outline</h2>
+<p>The satellite knows where it is because it has a GPS.
+Using GPS coordinates, the satellite can use an internal model of the earth's magnetic field to calculate what the magnetic field vector should be at that point. This can later be compared with magnetometer readings to calculate the attitude of the satellite.</p>
+<h2 id="resources">Resources</h2>
+<p><a href="https://www.raumfahrt.fh-aachen.de/compass-1/download/Development%20of%20an%20Active%20Magnetic%20Attitude%20Determination%20and%20Control%20System%20for%20Picosatellites%20on%20highly%20inclined%20circular%20Low%20Earth%20Orbits.pdf">Masters thesis by Gießelmann</a></p>
+<p><a href="https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/igrf14coeffs.txt">IGRF14 coefficients</a></p>
+<h2 id="details">Details</h2>
+<p>Because the magnetic field has no sources in space (no large currents or changing electric fields) it can be described as the gradient of a scalar function, and this scalar function must satisfy a laplace equation.
+The laplace equation is solved for spherical potentials and it can be shown that solutions to the laplace equation must be in the form of a radial function times a spherical harmonic.</p>
+<p>The spherical harmonics are simply a sinusoid in the phi(azimuthal) direction and a legendre polynomial in the theta (altitude) direction.</p>
+<p>Because we know that the magnetic field is the gradient of this potential, we can find its components analytically by taking this gradient. These are shown in the equations below from Gießelmann.
+<img alt="Image" src="../math.png" /></p>
+<p>These equations tell us what we need to calculate:</p>
+<ol>
+<li>The spherical harmonics (evalutated at our phi, theta).</li>
+<li>The derivatives of the harmonics to give us the theta term.</li>
+<li>The harmonic coefficients. These are measured by NOAA and [listed in the resource above. We will store these but not calculate them ourselves. </li>
+</ol>
+<h2 id="calculating-legendre-polynomials">Calculating Legendre Polynomials</h2>
+<p><a href="https://en.wikipedia.org/wiki/Associated_Legendre_polynomials">Wikipedia on associated legendre functions</a>
+Technically these are not polynomials, but functions because they have non integer powers.
+The values (calculated at a given theta and phi) are stored in an array as follows:</p>
+<pre><code class="language-cpp">const float P = Pnm[n][m]; // Legendre polynomials
+const float dP = Pnm[m][n+1] // Derivatives
+</code></pre>
+<p>Because the legendre polynomials we need to use are schmidt quasi-normalized, the recurence relation is actually the normal relation.</p>
+<p>But basically we implement the above formula.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../help/" class="btn btn-neutral float-right" title="Help">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../help/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
