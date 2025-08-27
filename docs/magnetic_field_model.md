@@ -39,6 +39,38 @@ The values (calculated at a given theta and phi) are stored in an array as follo
 const float P = Pnm[n][m]; // Legendre polynomials
 const float dP = Pnm[m][n+1] // Derivatives
 ```
-Because the legendre polynomials we need to use are schmidt quasi-normalized, the recurence relation is actually the normal relation.
+There is a funny little recursion relation that I don't quite understand to generate them.
 
-But basically we implement the above formula.
+**TODO: Ask Lundeen how this works.**
+
+## Results
+First we need to run the script by modifying main.
+First add the proper include:
+```cpp
+#include "tests/b_field_tests.h"
+```
+Then add the test scripts after initalizing slate:
+```cpp
+test_b_field_reference_points(&slate);
+test_b_field_mapping(&slate);
+test_b_field_ecef_conversion(&slate);
+```
+As you run it you can run the python script in utils:
+```bash
+$ python serial_copy.py
+```
+
+This script literally just takes the output from the serial usb stream and dumps it all straight into a .txt file.
+I then processed the file (I deleted the lines that I didn't need in a text editor), and copied the file over to the /igrf folder. I also renamed it to magnetic_data.csv so that it would play well with the scripts we have there.
+The images below are generated respectively using
+```bash
+$ python magnetic_plotter.py
+
+$ python igrf_comparison.py
+```
+
+
+Note that the legend on the magnitude is displaying magnitude 1e-7+1.
+Meaning that the magnitude is well normalized nearly everwhere, allowing for some floating point rounding.
+![Magnetic Field Model Data](magnets.png)
+![Comparison to igrf](comparison.png)
